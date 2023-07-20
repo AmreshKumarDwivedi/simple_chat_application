@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WebSocket Client</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+    }
+
+    #chat-container {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .chat {
+      list-style: none;
+      padding: 10px;
+      margin: 0;
+      flex-grow: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .message-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 8px 12px;
+      border-radius: 20px;
+      word-wrap: break-word;
+      font-size: 14px;
+    }
+
+    .message-container[data-type="sent"] .message {
+      background-color: #dcf8c6;
+      color: #000;
+      align-self: flex-end;
+    }
+
+    .message-container[data-type="received"] .message {
+      background-color: #128C7E;
+      color: #fff;
+      align-self: flex-start;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 8px;
+    }
+
+    #message {
+      flex-grow: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 20px;
+      outline: none;
+      font-size: 14px;
+      background-color: #f5f5f5;
+    }
+
+    #send-btn {
+      margin-left: 10px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background-color: #128C7E;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="chat-container">
+    <ul class="chat" id="messageContainer"></ul>
+    <div class="chat-input">
+      <input type="text" id="message" placeholder="Type your message here">
+      <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const socket = new WebSocket('ws://localhost:6969');
+
+    socket.onmessage = function (event) {
+      appendMessage(event.data, 'received');
+    };
+
+    function appendMessage(message, messageType) {
+      const messageContainer = document.getElementById('messageContainer');
+      const messageLi = document.createElement('li');
+      messageLi.classList.add('message-container');
+      messageLi.setAttribute('data-type', messageType);
+
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message');
+      messageDiv.innerText = message;
+      messageLi.appendChild(messageDiv);
+
+      messageContainer.appendChild(messageLi);
+
+      // Scroll to the bottom to show new messages
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    function sendMessage() {
+      const messageInput = document.getElementById('message');
+      const message = messageInput.value.trim();
+      if (message === '') return;
+
+      appendMessage(message, 'sent');
+      socket.send(message);
+      messageInput.value = '';
+    }
+  </script>
+</body>
+
+</html>
